@@ -4,22 +4,21 @@ const http = require("http");
 const WebSocket = require("ws");
 
 const app = express();
-
-// Serve frontend
-app.use(express.static(path.join(__dirname, "../client")));
-
-// Create HTTP server
 const server = http.createServer(app);
-
-// Attach WebSocket server
 const wss = new WebSocket.Server({ server });
+
+// SERVE CLIENT FILES
+const clientPath = path.join(__dirname, "../Client");
+app.use(express.static(clientPath));
+
+// SERVE index.html on "/"
+app.get("/", (req, res) => {
+  res.sendFile(path.join(clientPath, "index.html"));
+});
 
 // WebSocket logic
 wss.on("connection", (ws) => {
-  console.log("WebSocket client connected");
-
   ws.on("message", (message) => {
-    // Broadcast message to ALL clients
     wss.clients.forEach((client) => {
       if (client.readyState === WebSocket.OPEN) {
         client.send(message.toString());
@@ -28,8 +27,8 @@ wss.on("connection", (ws) => {
   });
 });
 
-// Start server
-const PORT = process.env.PORT || 3000;
+//Railway dynamic port
+const PORT = process.env.PORT || 8080;
 server.listen(PORT, () => {
-  console.log("Server running at http://localhost:3000");
+  console.log(`Server running on port ${PORT}`);
 });
